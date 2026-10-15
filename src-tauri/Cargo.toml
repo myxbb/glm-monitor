@@ -1,6 +1,6 @@
 [package]
 name = "glm-monitor"
-version = "0.1.3"
+version = "0.1.4"
 description = "GLM Coding Plan 多账号额度菜单栏监控"
 authors = ["glm-monitor"]
 edition = "2021"
