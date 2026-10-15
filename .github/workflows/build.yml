@@ -5,6 +5,9 @@ on:
     tags: ["v*"]
   workflow_dispatch: # 允许在 GitHub 页面手动触发
 
+permissions:
+  contents: write # tauri-action 需要写权限创建 Release 并上传安装包
+
 jobs:
   build:
     strategy:
