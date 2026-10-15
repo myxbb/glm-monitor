@@ -127,20 +127,37 @@ def make_icns(master_png):
 
 
 def make_ico(master_png):
+    """ico 条目用传统 32 位 BMP(DIB) 负载——RC.EXE（Windows 资源编译器）
+    不认 PNG 负载，会报 RC2176 'old DIB'，必须用 BMP。"""
+    from PIL import Image
+
+    img = Image.open(master_png).convert("RGBA")
     entries = []
     data = b""
-    offset = 6 + 16 * 4
+    offset = 6 + 16 * 6  # ICONDIR + 6 个目录项
     for s in (16, 32, 48, 64, 128, 256):
-        tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-        tmp.close()
-        resize(master_png, tmp.name, s)
-        with open(tmp.name, "rb") as f:
-            png = f.read()
-        os.unlink(tmp.name)
+        im = img.resize((s, s), Image.LANCZOS)
+        px = im.load()
+        # BITMAPINFOHEADER：biHeight = 2×宽（XOR 掩码 + AND 掩码两部分）
+        bih = struct.pack(
+            "<IiiHHIIiiII", 40, s, s * 2, 1, 32, 0,
+            s * s * 4 + ((s + 31) // 32) * 4 * s, 0, 0, 0, 0,
+        )
+        # XOR 掁码：32 位 BGRA，自底向上
+        xor = bytearray()
+        for y in range(s - 1, -1, -1):
+            for x in range(s):
+                r, g, b, a = px[x, y]
+                xor += struct.pack("<BBBB", b, g, r, a)
+        # AND 掩码：1bpp，行按 4 字节对齐，全 0（透明度由 alpha 通道表达）
+        row_bytes = ((s + 31) // 32) * 4
+        and_mask = b"\x00" * (row_bytes * s)
+        dib = bytes(bih) + bytes(xor) + and_mask
+
         w = 0 if s >= 256 else s
-        entries.append(struct.pack("<BBBBHHII", w, w, 0, 0, 1, 32, len(png), offset))
-        data += png
-        offset += len(png)
+        entries.append(struct.pack("<BBBBHHII", w, w, 0, 0, 1, 32, len(dib), offset))
+        data += dib
+        offset += len(dib)
     with open(os.path.join(ICONS, "icon.ico"), "wb") as f:
         f.write(struct.pack("<HHH", 0, 1, len(entries)) + b"".join(entries) + data)
 
