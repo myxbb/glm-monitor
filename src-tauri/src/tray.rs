@@ -260,7 +260,6 @@ fn position_panel(
     click: PhysicalPosition<f64>,
     rect: Option<Rect>,
 ) {
-    use tauri::Manager;
     let Some(m) = monitor_containing(app, click.x, click.y) else {
         return;
     };
@@ -307,7 +306,6 @@ fn position_panel(
 /// 物理坐标落在哪个显示器上（Windows 路径用）；都不含时取距离最近的
 #[cfg(not(target_os = "macos"))]
 fn monitor_containing(app: &AppHandle, x: f64, y: f64) -> Option<tauri::Monitor> {
-    use tauri::Manager;
     let monitors = app.available_monitors().ok()?;
     monitors.into_iter().min_by(|a, b| {
         fn dist(m: &tauri::Monitor, x: f64, y: f64) -> f64 {
@@ -465,13 +463,15 @@ pub fn update(app: &AppHandle) {
     let pct = usage.as_ref().and_then(|u| u.five_hour_used);
     let _ = tray.set_icon(Some(ui::tray_icon(pct)));
 
-    let title = match pct {
-        Some(p) => format!("G·{}%", p.round() as i64),
-        None => "G·--".to_string(),
-    };
     // Windows 托盘不支持 title 文字，靠图标+tooltip 表达
     #[cfg(target_os = "macos")]
-    let _ = tray.set_title(Some(title));
+    {
+        let title = match pct {
+            Some(p) => format!("G·{}%", p.round() as i64),
+            None => "G·--".to_string(),
+        };
+        let _ = tray.set_title(Some(title));
+    }
 
     let _ = tray.set_tooltip(Some(tooltip_text(sel_name.as_deref(), usage.as_ref())));
 }

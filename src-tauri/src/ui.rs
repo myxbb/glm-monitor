@@ -38,6 +38,7 @@ pub fn tray_icon(pct: Option<f64>) -> Image<'static> {
 }
 
 /// 实心彩色圆点（macOS 菜单栏）
+#[cfg_attr(target_os = "windows", allow(dead_code))]
 pub fn dot_icon(rgb: [u8; 3], size: u32) -> Image<'static> {
     let mut buf = Vec::with_capacity((size * size * 4) as usize);
     let c = (size as f64 - 1.0) / 2.0;
