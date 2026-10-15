@@ -1186,7 +1186,7 @@ dependencies = [
 
 [[package]]
 name = "glm-monitor"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "keyring",
  "reqwest 0.12.28",
@@ -3466,7 +3466,7 @@ dependencies = [
 
 [[package]]
 name = "tao-macros"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5f7eeb6d99155545da6150a1795945f16ac9c178deb2a5f2e74d776107bd5849"
 dependencies = [
