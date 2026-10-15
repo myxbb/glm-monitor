@@ -3,6 +3,11 @@
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 
+// Windows 用不透明窗口（透明窗口在 WebView2 有渲染错位/命中失效问题），
+// 内容铺满窗口、尺寸固定，不做运行时缩放
+const IS_WIN = navigator.userAgent.includes('Windows');
+if (IS_WIN) document.body.classList.add('win');
+
 let state = { accounts: [], usage: {}, selectedAccountId: null, lastRefreshAt: null };
 
 const $ = (id) => document.getElementById(id);
@@ -145,6 +150,7 @@ function tick() {
 }
 
 function fitHeight() {
+  if (IS_WIN) return; // Windows 窗口尺寸固定 344×420
   const panel = $('panel');
   const rect = panel.getBoundingClientRect();
   const h = rect.height + 24; // 上下各 12px 留白

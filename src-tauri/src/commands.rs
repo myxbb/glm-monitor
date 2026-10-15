@@ -290,9 +290,10 @@ pub fn open_settings_impl(app: &AppHandle) -> Result<(), String> {
         .map_err(|e| format!("打开设置窗口失败: {e}"))
 }
 
-/// 前端按内容实际高度调整面板窗口尺寸。
-/// macOS 的 setContentSize 固定左下角（窗口向上生长），
-/// resize 后必须把左上角设回原位，否则面板顶边会滑离菜单栏。
+/// 前端按内容实际高度调整面板窗口尺寸（仅 macOS 需要；
+/// Windows 面板是固定 344×420 的不透明窗口，运行时缩放会触发
+/// WebView2 的渲染错位问题，前端也不会调用）。
+#[cfg(target_os = "macos")]
 #[tauri::command]
 pub fn resize_panel(app: AppHandle, height: f64) -> Result<(), String> {
     let panel = app.get_webview_window("panel").ok_or("面板窗口不存在")?;
@@ -304,6 +305,12 @@ pub fn resize_panel(app: AppHandle, height: f64) -> Result<(), String> {
     panel
         .set_position(PhysicalPosition::new(top_left.x, top_left.y))
         .map_err(|e| e.to_string())
+}
+
+#[cfg(not(target_os = "macos"))]
+#[tauri::command]
+pub fn resize_panel(_app: AppHandle, _height: f64) -> Result<(), String> {
+    Ok(())
 }
 
 #[tauri::command]

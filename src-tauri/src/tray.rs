@@ -253,6 +253,7 @@ fn position_panel(
 }
 
 /// 非 macOS（Windows）：全局物理像素空间是统一坐标系，直接按物理坐标计算。
+/// Windows 面板是不透明整窗（344×420），窗口可见范围即面板范围。
 #[cfg(not(target_os = "macos"))]
 fn position_panel(
     app: &AppHandle,
@@ -278,7 +279,8 @@ fn position_panel(
         None => (click.x, click.y - 4.0, click.y),
     };
 
-    let mut x = anchor_right - 8.0 * scale - (PANEL_WINDOW_W - 12.0) * scale;
+    // 面板右缘对齐托盘图标右缘左侧 8px
+    let mut x = anchor_right - 8.0 * scale - win_w;
     let mp = m.position();
     let ms = m.size();
     let min_x = mp.x as f64;
@@ -287,17 +289,18 @@ fn position_panel(
         x = x.clamp(min_x, max_x);
     }
 
+    // 底部任务栏：面板出现在任务栏上方，留 4px 间隙
     let monitor_mid_y = mp.y as f64 + ms.height as f64 / 2.0;
     let panel_h = panel
         .outer_size()
         .map(|s| s.height as f64)
         .unwrap_or(420.0 * scale);
-    let pad = 12.0 * scale;
+    let gap = 4.0 * scale;
     let max_y = mp.y as f64 + ms.height as f64;
     let y = if anchor_bottom > monitor_mid_y {
-        (anchor_top - panel_h + pad).max(mp.y as f64)
+        (anchor_top - panel_h - gap).max(mp.y as f64)
     } else {
-        (anchor_bottom - pad).min(max_y)
+        (anchor_bottom + gap).min(max_y)
     };
 
     let _ = panel.set_position(PhysicalPosition::new(x as i32, y as i32));

@@ -162,6 +162,23 @@ body.open #panel { transform: none; opacity: 1; }
   font-variant-numeric: tabular-nums;
 }
 
+/* ============ Windows：不透明窗口，内容铺满 ============ */
+body.win { background: var(--bg); }
+body.win #panel {
+  margin: 0;
+  width: 344px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  transform: none;
+  opacity: 1;
+  box-shadow: none;
+  transition: none;
+}
+body.win #panel main { flex: 1; overflow-y: auto; }
+body.win #panel footer { flex: none; }
+
 /* ============ 设置窗口 ============ */
 body.settings-root { background: var(--bg); user-select: text; -webkit-user-select: text; }
 .settings {
