@@ -1,0 +1,28 @@
+[package]
+name = "glm-monitor"
+version = "0.1.1"
+description = "GLM Coding Plan 多账号额度菜单栏监控"
+authors = ["glm-monitor"]
+edition = "2021"
+rust-version = "1.77.2"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-png", "macos-private-api"] }
+tauri-plugin-store = "2"
+tauri-plugin-autostart = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+tokio = { version = "1", features = ["time"] }
+keyring = { version = "3", features = ["apple-native", "windows-native"] }
+
+# 缩小安装包体积（验收标准 < 15MB）
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+opt-level = "s"
+panic = "abort"

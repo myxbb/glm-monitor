@@ -1,0 +1,6 @@
+{
+  "identifier": "default",
+  "description": "面板与设置窗口的基础权限（自定义命令不受 ACL 限制，仅需核心权限）",
+  "windows": ["panel", "settings"],
+  "permissions": ["core:default"]
+}
