@@ -230,7 +230,10 @@ pub fn delete_account(app: AppHandle, id: String) -> Result<(), String> {
         eprintln!("[delete] 删除钥匙串条目失败: {e}");
     }
     persist_config(&app)?;
-    store::save_cache(&app, &lock_inner().usage.clone())?;
+    // 缓存落盘失败只记日志：内存状态已更新，不能因此跳过 UI 同步
+    if let Err(e) = store::save_cache(&app, &lock_inner().usage.clone()) {
+        eprintln!("[delete] 保存缓存失败: {e}");
+    }
     sync_ui(&app, true);
     Ok(())
 }
