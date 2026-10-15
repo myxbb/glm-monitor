@@ -269,8 +269,11 @@ pub fn set_launch_at_startup(app: AppHandle, enabled: bool) -> Result<(), String
 
 // ---------- 窗口 ----------
 
+/// 打开设置窗口。必须是 async 命令：非 async 命令在主线程执行，
+/// 而 Windows 上 WebView2 的窗口创建依赖主线程消息泵，会死锁
+/// （设置窗口白屏且整个应用失去响应），见 WebviewWindowBuilder 文档。
 #[tauri::command]
-pub fn open_settings(app: AppHandle) -> Result<(), String> {
+pub async fn open_settings(app: AppHandle) -> Result<(), String> {
     open_settings_impl(&app)
 }
 

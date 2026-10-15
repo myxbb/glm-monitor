@@ -53,9 +53,14 @@ fn on_menu_event(app: &AppHandle, event: tauri::menu::MenuEvent) {
             });
         }
         "settings" => {
-            if let Err(e) = crate::commands::open_settings_impl(app) {
-                eprintln!("[tray] 打开设置失败: {e}");
-            }
+            // 菜单事件在主线程回调，窗口创建必须挪到工作线程，
+            // 否则 Windows 上 WebView2 创建会死锁（见 commands::open_settings）
+            let h = app.clone();
+            tauri::async_runtime::spawn(async move {
+                if let Err(e) = crate::commands::open_settings_impl(&h) {
+                    eprintln!("[tray] 打开设置失败: {e}");
+                }
+            });
         }
         other => {
             if let Some(acc_id) = other.strip_prefix("switch:") {
