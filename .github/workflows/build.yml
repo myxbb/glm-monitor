@@ -46,6 +46,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: --target ${{ matrix.target }}
+          # 仅 tag 触发时发布 Release 并上传安装包；
+          # 手动触发时为空串，行为同从前（只构建、传 Artifacts）
+          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+          releaseName: "GLM Monitor ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}"
+          releaseDraft: false
+          prerelease: false
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
