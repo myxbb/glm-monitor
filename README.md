@@ -52,6 +52,20 @@ npm run build            # 或: cargo install tauri-cli --version "^2" && cargo 
    找到 `quota/limit` 请求，抄下 `bigmodel-organization`、`bigmodel-project`
    请求头的值与套餐类型（个人/团队）填入。
 
+## 常见问题
+
+### macOS 提示「"GLM Monitor"已损坏，无法打开。你应该将它移到废纸篓」
+
+Release 中的安装包未经开发者签名与公证，macOS 会给下载安装的应用附加隔离（quarantine）属性，导致 Gatekeeper 误报"已损坏"。应用本身没有问题，在终端执行以下命令清除隔离属性后即可正常打开：
+
+```bash
+xattr -cr "/Applications/GLM Monitor.app"
+```
+
+> 需要 macOS 15+（Sequoia）的旧写法 `sudo xattr -rd com.apple.quarantine ...` 在新系统中可能无效，建议使用上面的完整清除写法。
+
+若仍无法打开，可在「系统设置 → 隐私与安全性」页面底部点击「仍要打开」。
+
 ## 数据与存储
 
 | 数据 | 位置 |
