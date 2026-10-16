@@ -1,6 +1,9 @@
 //! 前端 invoke 命令与内部共享逻辑。
 
-use tauri::{AppHandle, LogicalSize, Manager, PhysicalPosition, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
+// 仅 macOS 的 resize_panel 使用；其他平台导入会产生 unused 警告
+#[cfg(target_os = "macos")]
+use tauri::{LogicalSize, PhysicalPosition};
 
 use crate::state::{self, new_account_id, now_secs, Account, Snapshot};
 use crate::store;
@@ -145,15 +148,16 @@ pub fn select_account_impl(app: &AppHandle, id: String) -> Result<(), String> {
     Ok(())
 }
 
-/// 新增或更新账号。id 为 None 表示新增；apiKey 为 None 表示编辑时保持不变。
+/// 新增或更新账号。id 为 None 表示新增；apiKey 为 None 表示编辑时保持不变；
+/// org/project 已从设置页移除，传 None 时保留原值（兼容存量配置）。
 #[tauri::command]
 pub fn save_account(
     app: AppHandle,
     id: Option<String>,
     name: String,
     api_key: Option<String>,
-    org: String,
-    project: String,
+    org: Option<String>,
+    project: Option<String>,
     account_type: u8,
 ) -> Result<Account, String> {
     let name = name.trim().to_string();
@@ -179,8 +183,12 @@ pub fn save_account(
                 .find(|a| a.id == id)
                 .ok_or_else(|| "账号不存在".to_string())?;
             acc.name = name;
-            acc.org = org.trim().to_string();
-            acc.project = project.trim().to_string();
+            if let Some(o) = org {
+                acc.org = o.trim().to_string();
+            }
+            if let Some(p) = project {
+                acc.project = p.trim().to_string();
+            }
             acc.account_type = account_type;
             acc.clone()
         }
@@ -192,8 +200,8 @@ pub fn save_account(
             let acc = Account {
                 id: new_account_id(),
                 name,
-                org: org.trim().to_string(),
-                project: project.trim().to_string(),
+                org: org.unwrap_or_default().trim().to_string(),
+                project: project.unwrap_or_default().trim().to_string(),
                 account_type,
             };
             store::set_api_key(&acc.id, &key)?;
