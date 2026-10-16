@@ -89,8 +89,6 @@ function startEdit(a) {
   editingId = a.id;
   $('f-name').value = a.name;
   $('f-key').value = '';
-  $('f-org').value = a.org || '';
-  $('f-project').value = a.project || '';
   $('f-type').value = String(a.type || 1);
   openForm(false);
 }
@@ -161,8 +159,6 @@ async function init() {
         id: editingId || null,
         name,
         apiKey: key || null,
-        org: $('f-org').value.trim(),
-        project: $('f-project').value.trim(),
         accountType: Number($('f-type').value),
       });
       toast('已保存，正在刷新额度…');

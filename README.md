@@ -47,12 +47,8 @@ npm run build            # 或: cargo install tauri-cli --version "^2" && cargo 
 
 ## 使用与凭证获取
 
-1. 首次运行后点击 ⚙️ 打开设置，添加账号（名称 + API Key，其余可选）。
-2. 一般**只需 API Key**（智谱开放平台的 Key，即 Claude Code/GLM Coding 配置的那个）。
-3. 若查询失败，再补充 org/project：
-   登录 bigmodel.cn 的 Coding Plan 页面 → 浏览器 DevTools → Network，
-   找到 `quota/limit` 请求，抄下 `bigmodel-organization`、`bigmodel-project`
-   请求头的值与套餐类型（个人/团队）填入。
+1. 首次运行后点击 ⚙️ 打开设置，添加账号（名称 + API Key）。
+2. **只需 API Key**（智谱开放平台的 Key，即 Claude Code/GLM Coding 配置的那个）。
 
 ## 常见问题
 

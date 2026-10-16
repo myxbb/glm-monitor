@@ -345,7 +345,8 @@ mod tests {
     #[test]
     fn no_quota_window_found() {
         // 未知类型且不带任何窗口编码（unit=5=月，非 5h/周/MCP）
-        let body = json!([{ "type": "SOMETHING_ELSE", "unit": 5, "number": 1, "percentage": 10.0 }]);
+        let body =
+            json!([{ "type": "SOMETHING_ELSE", "unit": 5, "number": 1, "percentage": 10.0 }]);
         assert!(parse_usage(&body).is_err());
     }
 }
