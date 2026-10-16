@@ -475,8 +475,8 @@ pub fn update(app: &AppHandle) {
     #[cfg(target_os = "macos")]
     {
         let title = match pct {
-            Some(p) => format!("G·{}%", p.round() as i64),
-            None => "G·--".to_string(),
+            Some(p) => format!("{}%", p.round() as i64),
+            None => "--".to_string(),
         };
         let _ = tray.set_title(Some(title));
     }
