@@ -54,6 +54,9 @@ pub struct Usage {
         skip_serializing_if = "Option::is_none"
     )]
     pub weekly_used: Option<f64>,
+    /// MCP 额度已用百分比（0-100）
+    #[serde(rename = "mcpUsed", default, skip_serializing_if = "Option::is_none")]
+    pub mcp_used: Option<f64>,
     /// 上次成功获取时间（Unix 秒）
     #[serde(rename = "updatedAt", default, skip_serializing_if = "Option::is_none")]
     pub updated_at: Option<i64>,

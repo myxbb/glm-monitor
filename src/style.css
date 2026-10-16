@@ -107,6 +107,12 @@ body.open #panel { transform: none; opacity: 1; }
   font-variant-numeric: tabular-nums;
   flex: none;
 }
+/* macOS：状态色圆标 + 数字 */
+.account .pct-wrap { display: inline-flex; align-items: center; gap: 5px; flex: none; }
+.pct-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gray); flex: none; }
+.pct-dot.c-green  { background: var(--green); }
+.pct-dot.c-yellow { background: var(--yellow); }
+.pct-dot.c-red    { background: var(--red); }
 
 .bar {
   height: 6px;

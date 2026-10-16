@@ -15,16 +15,16 @@
     <form id="account-form" hidden>
       <h3 id="form-title">添加账号</h3>
       <label>名称
-        <input name="name" id="f-name" required placeholder="如：主账号" autocomplete="off" />
+        <input name="name" id="f-name" required placeholder="主账号" autocomplete="off" />
       </label>
       <label>API Key
-        <input name="apiKey" id="f-key" type="password" required placeholder="智谱开放平台 API Key" autocomplete="off" />
+        <input name="apiKey" id="f-key" type="password" required autocomplete="off" />
       </label>
-      <label>组织 ID（org）· 可选
-        <input name="org" id="f-org" placeholder="通常留空；浏览器抓包 bigmodel-organization 的值" autocomplete="off" />
+      <label>组织 ID（可选）
+        <input name="org" id="f-org" autocomplete="off" />
       </label>
-      <label>项目 ID（project）· 可选
-        <input name="project" id="f-project" placeholder="通常留空；浏览器抓包 bigmodel-project 的值" autocomplete="off" />
+      <label>项目 ID（可选）
+        <input name="project" id="f-project" autocomplete="off" />
       </label>
       <label>套餐类型
         <select name="type" id="f-type">
@@ -55,16 +55,6 @@
       <span>开机自动启动</span>
       <input type="checkbox" id="startup" />
     </div>
-
-    <p class="hint">
-      说明：额度数据来自 open.bigmodel.cn 的 Coding Plan 接口（非官方接口，可能变更）。
-      一般只需填写 API Key；若查询失败，可在 bigmodel.cn 的 Coding Plan 页面打开浏览器
-      DevTools → Network，找到 quota/limit 请求，把 bigmodel-organization /
-      bigmodel-project 请求头的值抄进上面的可选字段。
-    </p>
-    <p class="hint">
-      API Key 保存在系统钥匙串（macOS Keychain / Windows 凭据管理器），不会明文写入配置文件。
-    </p>
   </div>
   <div id="toast"></div>
   <script src="settings.js"></script>

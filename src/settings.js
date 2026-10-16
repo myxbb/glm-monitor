@@ -44,7 +44,7 @@ function renderList() {
     const p = typeof u.fiveHourUsed === 'number' ? u.fiveHourUsed : null;
     const row = el('div', 's-acc' + (a.id === state.selectedAccountId ? ' sel' : ''));
     const meta = `${a.type === 2 ? '团队' : '个人'} · 5h ${p === null ? '--' : Math.round(p) + '%'}`
-      + (a.id === state.selectedAccountId ? ' · 菜单栏当前' : '');
+      + (a.id === state.selectedAccountId ? ' · 当前' : '');
     const be = el('button', '', '编辑');
     be.addEventListener('click', () => startEdit(a));
     const bd = el('button', 'danger', '删除');
@@ -72,9 +72,7 @@ function openForm(isNew) {
   editingId = isNew ? null : editingId;
   $('form-title').textContent = isNew ? '添加账号' : '编辑账号';
   $('f-key').required = isNew;
-  $('f-key').placeholder = isNew
-    ? '智谱开放平台 API Key'
-    : '留空表示保持不变';
+  $('f-key').placeholder = isNew ? '' : '留空则不修改';
   $('account-form').hidden = false;
   $('btn-add').hidden = true;
   $('f-name').focus();

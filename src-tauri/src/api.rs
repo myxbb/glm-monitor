@@ -23,6 +23,7 @@
 //! }
 //! ```
 //! 5h 窗口 = TOKENS/CREDIT + unit=3；周窗口 = (unit=1,number=7) 或 (unit=6,number=1)。
+//! MCP 额度 = TIME_LIMIT 条目（有 percentage 的首个）。
 
 use std::sync::OnceLock;
 use std::time::Duration;
@@ -168,6 +169,11 @@ fn is_quota_limit(item: &Value) -> bool {
     )
 }
 
+/// MCP 额度条目
+fn is_mcp_limit(item: &Value) -> bool {
+    item_str(item, "type") == Some("TIME_LIMIT")
+}
+
 /// 5 小时窗口：unit=3（小时）
 fn is_five_hour(item: &Value) -> bool {
     is_quota_limit(item) && item_i64(item, "unit") == Some(3)
@@ -232,15 +238,22 @@ pub fn parse_usage(v: &Value) -> Result<Usage, String> {
     let reset_at = five
         .and_then(|i| item_f64(i, "nextResetTime"))
         .map(|ms| (ms / 1000.0).round() as i64);
+    // MCP 额度：首个带 percentage 的 TIME_LIMIT 条目
+    let mcp_used = limits
+        .iter()
+        .find(|i| is_mcp_limit(i) && item_f64(i, "percentage").is_some())
+        .and_then(|i| item_f64(i, "percentage"))
+        .map(|p| p.clamp(0.0, 100.0));
 
-    if five_used.is_none() && week_used.is_none() {
-        return Err("响应中未找到可识别的 5 小时/周额度窗口".into());
+    if five_used.is_none() && week_used.is_none() && mcp_used.is_none() {
+        return Err("响应中未找到可识别的额度窗口".into());
     }
 
     Ok(Usage {
         five_hour_used: five_used,
         five_hour_reset_at: reset_at,
         weekly_used: week_used,
+        mcp_used,
         updated_at: None,
         error: None,
     })
@@ -271,6 +284,7 @@ mod tests {
         assert_eq!(u.five_hour_used, Some(42.5));
         assert_eq!(u.five_hour_reset_at, Some(1730000000));
         assert_eq!(u.weekly_used, Some(28.0));
+        assert_eq!(u.mcp_used, Some(10.0));
     }
 
     #[test]
@@ -287,6 +301,19 @@ mod tests {
         assert_eq!(u.five_hour_used, Some(25.0));
         assert_eq!(u.weekly_used, Some(9.4));
         assert_eq!(u.five_hour_reset_at, Some(1730000000));
+        assert_eq!(u.mcp_used, None);
+    }
+
+    #[test]
+    fn parse_mcp_only() {
+        // 只有 MCP（TIME_LIMIT）额度时也算有效响应
+        let body = json!([
+            { "type": "TIME_LIMIT", "unit": 6, "number": 1, "percentage": 66.0 }
+        ]);
+        let u = parse_usage(&body).unwrap();
+        assert_eq!(u.five_hour_used, None);
+        assert_eq!(u.weekly_used, None);
+        assert_eq!(u.mcp_used, Some(66.0));
     }
 
     #[test]
@@ -317,7 +344,8 @@ mod tests {
 
     #[test]
     fn no_quota_window_found() {
-        let body = json!([{ "type": "TIME_LIMIT", "unit": 6, "number": 1, "percentage": 10.0 }]);
+        // 未知类型且不带任何窗口编码（unit=5=月，非 5h/周/MCP）
+        let body = json!([{ "type": "SOMETHING_ELSE", "unit": 5, "number": 1, "percentage": 10.0 }]);
         assert!(parse_usage(&body).is_err());
     }
 }

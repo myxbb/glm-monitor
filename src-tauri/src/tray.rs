@@ -425,23 +425,34 @@ fn human_duration(secs: i64) -> String {
     }
 }
 
+/// 压成单行并截断（Windows tooltip 总长上限 128 字符）
+fn one_line(s: &str, max: usize) -> String {
+    let t: String = s.split_whitespace().collect::<Vec<_>>().join(" ");
+    if t.chars().count() > max {
+        format!("{}…", t.chars().take(max).collect::<String>())
+    } else {
+        t
+    }
+}
+
 fn tooltip_text(name: Option<&str>, usage: Option<&Usage>) -> String {
     let Some(name) = name else {
-        return "GLM 额度监控\n未配置账号".to_string();
+        return "GLM Monitor\n未配置账号".to_string();
     };
     let Some(u) = usage else {
         return format!("{name} · 暂无数据");
     };
     let Some(p) = u.five_hour_used else {
-        return format!(
-            "{name} · 获取失败\n{}",
-            u.error.as_deref().unwrap_or("请稍后重试")
-        );
+        let err = one_line(u.error.as_deref().unwrap_or("请稍后重试"), 80);
+        return format!("{name} · 获取失败\n{err}");
     };
-    let weekly = match u.weekly_used {
-        Some(w) => format!("周额度 已用 {}%", w.round() as i64),
-        None => "周额度 --".to_string(),
+    let mut line2 = match u.weekly_used {
+        Some(w) => format!("周 {}", w.round() as i64),
+        None => "周 --".to_string(),
     };
+    if let Some(m) = u.mcp_used {
+        line2.push_str(&format!(" · MCP {}", m.round() as i64));
+    }
     let reset = match u.five_hour_reset_at {
         Some(t) => {
             let remain = (t - now_secs()).max(0);
@@ -449,7 +460,7 @@ fn tooltip_text(name: Option<&str>, usage: Option<&Usage>) -> String {
         }
         None => "重置时间未知".to_string(),
     };
-    format!("{name} · 5h 已用 {}%\n{weekly}\n{reset}", p.round() as i64)
+    format!("{name} · 5h {}%\n{line2}\n{reset}", p.round() as i64)
 }
 
 /// 状态变化后更新托盘图标 / 标题 / 悬停提示
@@ -499,5 +510,30 @@ mod tests {
     #[test]
     fn tooltip_without_account() {
         assert!(tooltip_text(None, None).contains("未配置账号"));
+    }
+
+    #[test]
+    fn tooltip_includes_weekly_and_mcp() {
+        let u = Usage {
+            five_hour_used: Some(69.0),
+            five_hour_reset_at: Some(now_secs() + 8040),
+            weekly_used: Some(28.0),
+            mcp_used: Some(10.4),
+            updated_at: None,
+            error: None,
+        };
+        let t = tooltip_text(Some("主账号"), Some(&u));
+        assert!(t.contains("主账号 · 5h 69%"), "unexpected: {t}");
+        assert!(t.contains("周 28 · MCP 10"), "unexpected: {t}");
+    }
+
+    #[test]
+    fn tooltip_error_is_truncated() {
+        let u = Usage {
+            error: Some("x".repeat(300)),
+            ..Default::default()
+        };
+        let t = tooltip_text(Some("主账号"), Some(&u));
+        assert!(t.chars().count() < 128, "tooltip too long: {t}");
     }
 }

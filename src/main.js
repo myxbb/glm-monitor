@@ -64,36 +64,42 @@ function accountNode(acc) {
   const row1 = el('div', 'row1');
   row1.append(
     el('span', 'radio', selected ? '●' : '○'),
-    el('span', 'name', acc.name),
-    el('span', 'pct ' + c, p === null ? 'G·--' : `G·${Math.round(p)}%`)
+    el('span', 'name', acc.name)
   );
+  // Windows 托盘/面板显示完整「GLM·69%」；macOS 菜单栏已是圆标+数字，面板同格式
+  if (IS_WIN) {
+    row1.append(el('span', 'pct ' + c, p === null ? 'GLM·--' : `GLM·${Math.round(p)}%`));
+  } else {
+    const wrap = el('span', 'pct-wrap');
+    wrap.append(
+      el('i', 'pct-dot ' + c),
+      el('span', 'pct ' + c, p === null ? '--' : `${Math.round(p)}%`)
+    );
+    row1.append(wrap);
+  }
 
   const bar = el('div', 'bar');
-  const fill = el('i', colorCls(p));
+  const fill = el('i', c);
   fill.style.width = (p === null ? 0 : Math.min(100, p)) + '%';
   bar.appendChild(fill);
 
+  // 副行：周 / MCP / 重置倒计时，尽量简短
   const sub = el('div', 'sub');
-  const cd = el('span', 'cd', '');
-  sub.append(cd, document.createTextNode(' · '));
-  if (u.error) {
-    if (p === null) {
-      sub.appendChild(el('span', 'err', '获取失败'));
-    } else {
-      sub.appendChild(
-        el('span', 'weekly',
-          typeof u.weeklyUsed === 'number' ? `周额度 已用 ${Math.round(u.weeklyUsed)}%` : '周额度 --')
-      );
-      sub.appendChild(el('span', 'err', '（缓存）'));
+  if (p === null && u.error) {
+    sub.appendChild(el('span', 'err', '获取失败'));
+  } else {
+    const info = [];
+    if (typeof u.weeklyUsed === 'number') info.push(`周 ${Math.round(u.weeklyUsed)}%`);
+    if (typeof u.mcpUsed === 'number') info.push(`MCP ${Math.round(u.mcpUsed)}%`);
+    if (info.length) sub.appendChild(document.createTextNode(info.join(' · ') + ' · '));
+    const cd = el('span', 'cd', '');
+    sub.appendChild(cd);
+    if (u.error) {
+      sub.appendChild(el('span', 'err', ' · 缓存'));
       row.title = `上次错误：${u.error}`;
     }
-  } else {
-    sub.appendChild(
-      el('span', 'weekly',
-        typeof u.weeklyUsed === 'number' ? `周额度 已用 ${Math.round(u.weeklyUsed)}%` : '周额度 --')
-    );
+    updateCountdown(cd, u.fiveHourResetAt);
   }
-  updateCountdown(cd, p === null && u.error ? null : u.fiveHourResetAt);
 
   row.append(row1, bar, sub);
   return row;
