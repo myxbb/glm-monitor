@@ -1,5 +1,5 @@
 // 设置页：账号增删改、刷新间隔、开机自启
-/* global window, document, confirm */
+/* global window, document */
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 
@@ -47,9 +47,25 @@ function renderList() {
       + (a.id === state.selectedAccountId ? ' · 当前' : '');
     const be = el('button', '', '编辑');
     be.addEventListener('click', () => startEdit(a));
+    // Webview 中原生 confirm() 不弹窗且恒返回 false，改用二次点击确认
     const bd = el('button', 'danger', '删除');
     bd.addEventListener('click', async () => {
-      if (!confirm(`删除账号「${a.name}」？将同时删除钥匙串中的 API Key。`)) return;
+      if (bd.dataset.armed !== '1') {
+        bd.dataset.armed = '1';
+        bd.textContent = '确认删除';
+        bd.classList.add('arm');
+        clearTimeout(bd._t);
+        bd._t = setTimeout(() => {
+          bd.dataset.armed = '';
+          bd.textContent = '删除';
+          bd.classList.remove('arm');
+        }, 3000);
+        return;
+      }
+      clearTimeout(bd._t);
+      bd.dataset.armed = '';
+      bd.textContent = '删除';
+      bd.classList.remove('arm');
       try {
         await invoke('delete_account', { id: a.id });
         toast('已删除');
